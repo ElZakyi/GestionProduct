@@ -1,75 +1,88 @@
 import React, { useState } from "react";
-import "./Register.css";
+import "./Auth.css";
 
 function Register() {
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [motDePasse, setMotDePasse] = useState("");
+  const [role, setRole] = useState("employe");
 
   const handleRegister = (e) => {
     e.preventDefault();
-    console.log("Nom :", nom);
-    console.log("Prénom :", prenom);
-    console.log("Email :", email);
-    console.log("Mot de passe :", password);
 
-    // Exemple backend plus tard :
-    // axios.post("http://localhost:8080/register", {
-    //     nom, prenom, email, password
-    // })
+    const newUser = {
+      nom,
+      prenom,
+      email,
+      motDePasse,
+      role
+    };
+
+    // À connecter plus tard :
+    // axios.post("http://localhost:8080/register", newUser)
+
+    console.log("Nouvel utilisateur :", newUser);
   };
 
   return (
-    <div className="register-container">
-      <form className="register-box" onSubmit={handleRegister}>
-        <h2>Créer un compte</h2>
+    <div className="auth-container">
+      <form className="auth-box" onSubmit={handleRegister}>
+        <h2>Inscription</h2>
 
         <div className="input-group">
-          <label>Nom</label>
+          <label>Nom :</label>
           <input
             type="text"
-            placeholder="Votre nom"
             value={nom}
             onChange={(e) => setNom(e.target.value)}
+            placeholder="Votre nom"
             required
           />
         </div>
 
         <div className="input-group">
-          <label>Prénom</label>
+          <label>Prénom :</label>
           <input
             type="text"
-            placeholder="Votre prénom"
             value={prenom}
             onChange={(e) => setPrenom(e.target.value)}
+            placeholder="Votre prénom"
             required
           />
         </div>
 
         <div className="input-group">
-          <label>Email</label>
+          <label>Email :</label>
           <input
             type="email"
-            placeholder="Votre email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            placeholder="Votre email"
             required
           />
         </div>
 
         <div className="input-group">
-          <label>Mot de passe</label>
+          <label>Mot de passe :</label>
           <input
             type="password"
+            value={motDePasse}
+            onChange={(e) => setMotDePasse(e.target.value)}
             placeholder="Votre mot de passe"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
 
-        <button type="submit" className="register-btn">
+        <div className="input-group">
+          <label>Rôle :</label>
+          <select value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="employe">Employé</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <button type="submit" className="btn-auth">
           S'inscrire
         </button>
       </form>

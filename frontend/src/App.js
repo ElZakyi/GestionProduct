@@ -1,12 +1,10 @@
-import React from "react";
-import MouvementManagement from "./components/MouvementManagement";
+import React, { useState } from "react";
+import CategoryManagement from "./components/CategoryManagement";
 
 function App() {
-  return (
-    <div>
-      <MouvementManagement />
-    </div>
-  );
-}
+    return (
+    <CategoryManagement/>
+    )
+  }
 
 export default App;

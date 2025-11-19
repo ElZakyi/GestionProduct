@@ -1,26 +1,31 @@
 import React, { useState } from "react";
-import "./Login.css";
+import "./Auth.css";
 
-function Login() {
+function Login({ onLogin }) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [motDePasse, setMotDePasse] = useState("");
 
-  const handleLogin = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Email:", email);
-    console.log("Mot de passe:", password);
 
-    // ICI tu vas plus tard appeler ton backend Spring Boot :
-    // axios.post("http://localhost:8080/login", { email, password })
+    // À connecter plus tard avec Spring :
+    // axios.post("http://localhost:8080/login", { email, motDePasse })
+    //   .then(res => onLogin(res.data));
+
+    console.log("Tentative de connexion :", email, motDePasse);
+
+    if (onLogin) {
+      onLogin({ email });
+    }
   };
 
   return (
-    <div className="login-container">
-      <form className="login-box" onSubmit={handleLogin}>
+    <div className="auth-container">
+      <form className="auth-box" onSubmit={handleSubmit}>
         <h2>Connexion</h2>
 
         <div className="input-group">
-          <label>Email</label>
+          <label>Email :</label>
           <input
             type="email"
             placeholder="Votre email"
@@ -31,17 +36,17 @@ function Login() {
         </div>
 
         <div className="input-group">
-          <label>Mot de passe</label>
+          <label>Mot de passe :</label>
           <input
             type="password"
             placeholder="Votre mot de passe"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            value={motDePasse}
+            onChange={(e) => setMotDePasse(e.target.value)}
             required
           />
         </div>
 
-        <button type="submit" className="login-btn">
+        <button type="submit" className="btn-auth">
           Se connecter
         </button>
       </form>
