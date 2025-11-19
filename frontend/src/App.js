@@ -1,10 +1,10 @@
 import React from "react";
-import Register from "./components/Register";
+import MouvementManagement from "./components/MouvementManagement";
 
 function App() {
   return (
     <div>
-      <Register />
+      <MouvementManagement />
     </div>
   );
 }

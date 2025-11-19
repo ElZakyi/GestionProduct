@@ -1,0 +1,84 @@
+.produit-container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.form-produit {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-produit h3 {
+  margin-bottom: 15px;
+}
+
+.form-produit input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.btn-ajouter {
+  width: 100%;
+  padding: 12px;
+  background: #0066ff;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-ajouter:hover {
+  background: #004ec7;
+}
+
+.table-produit {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-produit th,
+.table-produit td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+
+.btn-supprimer {
+  background: #dc3545;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  margin-left: 5px;
+  cursor: pointer;
+}
+
+.btn-supprimer:hover {
+  background: #b02a37;
+}
+
+.btn-edit {
+  background: #ffc107;
+  color: black;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.btn-edit:hover {
+  background: #e0a800;
+}
