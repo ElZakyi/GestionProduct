@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";  // 👈 pour la redirection
 import "./CategoryManagement.css";
 
 function CategorieManagement() {
@@ -7,58 +9,89 @@ function CategorieManagement() {
   const [description, setDescription] = useState("");
   const [editId, setEditId] = useState(null);
 
-  // Ajouter ou modifier
+  const navigate = useNavigate(); // 👈 redirection
+  const API_URL = "http://localhost:8080/api/categories";
+
+  // 🔹 Charger la liste au démarrage
+  useEffect(() => {
+    chargerCategories();
+  }, []);
+
+  const chargerCategories = () => {
+    axios
+      .get(API_URL)
+      .then((res) => setCategories(res.data))
+      .catch(() => alert("Erreur lors du chargement des catégories"));
+  };
+
+  // 🔹 Ajouter ou modifier
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const categorie = {
+      nomCategorie,
+      description,
+    };
+
     if (editId) {
-      // Mode modification
-      const updated = categories.map((cat) =>
-        cat.idCategorie === editId
-          ? { ...cat, nomCategorie, description }
-          : cat
-      );
-
-      setCategories(updated);
-      setEditId(null);
-
-      // Backend :
-      // axios.put("http://localhost:8080/categories/"+editId, {...})
+      axios
+        .put(`${API_URL}/${editId}`, categorie)
+        .then(() => {
+          chargerCategories();
+          setEditId(null);
+          setNomCategorie("");
+          setDescription("");
+        })
+        .catch(() => alert("Erreur lors de la modification"));
     } else {
-      // Mode ajout
-      const nouvelleCategorie = {
-        idCategorie: Date.now(),
-        nomCategorie,
-        description,
-      };
-
-      setCategories([...categories, nouvelleCategorie]);
-
-      // Backend :
-      // axios.post("http://localhost:8080/categories", nouvelleCategorie)
+      axios
+        .post(API_URL, categorie)
+        .then(() => {
+          chargerCategories();
+          setNomCategorie("");
+          setDescription("");
+        })
+        .catch(() => alert("Erreur lors de l'ajout"));
     }
-
-    setNomCategorie("");
-    setDescription("");
   };
 
-  // Charger une catégorie dans le formulaire pour modification
+  // 🔹 Remplir le formulaire
   const modifierCategorie = (cat) => {
     setNomCategorie(cat.nomCategorie);
     setDescription(cat.description);
     setEditId(cat.idCategorie);
   };
 
-  // Supprimer
+  // 🔹 Supprimer
   const supprimerCategorie = (id) => {
-    setCategories(categories.filter((c) => c.idCategorie !== id));
+    if (!window.confirm("Supprimer cette catégorie ?")) return;
 
-    // Backend :
-    // axios.delete("http://localhost:8080/categories/"+id)
+    axios
+      .delete(`${API_URL}/${id}`)
+      .then(() => chargerCategories())
+      .catch(() => alert("Erreur lors de la suppression"));
   };
 
   return (
     <div className="categorie-container">
+
+      {/* 🔙 BOUTON RETOUR */}
+      <button
+        onClick={() => navigate("/produits")}
+        className="btn-retour"
+        style={{
+          background: "#6c757d",
+          color: "white",
+          padding: "8px 14px",
+          borderRadius: "6px",
+          border: "none",
+          cursor: "pointer",
+          marginBottom: "20px"
+        }}
+      >
+        ← Retour Produits
+      </button>
+
       <h2>Gestion des Catégories</h2>
 
       <form className="form-categorie" onSubmit={handleSubmit}>
@@ -84,8 +117,8 @@ function CategorieManagement() {
         </button>
       </form>
 
-      {/* Tableau de catégories */}
       <h3>Liste des Catégories</h3>
+
       <table className="table-categorie">
         <thead>
           <tr>
@@ -125,6 +158,7 @@ function CategorieManagement() {
           )}
         </tbody>
       </table>
+
     </div>
   );
 }

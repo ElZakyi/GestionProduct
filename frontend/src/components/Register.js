@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import axios from "axios"; 
+import { useNavigate } from "react-router-dom";
 import "./Auth.css";
 
 function Register() {
@@ -8,21 +10,21 @@ function Register() {
   const [motDePasse, setMotDePasse] = useState("");
   const [role, setRole] = useState("employe");
 
+  const navigate = useNavigate();
+
   const handleRegister = (e) => {
     e.preventDefault();
 
-    const newUser = {
-      nom,
-      prenom,
-      email,
-      motDePasse,
-      role
-    };
+    const newUser = { nom, prenom, email, motDePasse, role };
 
-    // À connecter plus tard :
-    // axios.post("http://localhost:8080/register", newUser)
-
-    console.log("Nouvel utilisateur :", newUser);
+    axios.post("http://localhost:8080/api/auth/register", newUser)
+      .then(res => {
+        alert("Inscription réussie !");
+        navigate("/login");
+      })
+      .catch(err => {
+        alert("Erreur : " + err.response.data.message);
+      });
   };
 
   return (
@@ -85,6 +87,18 @@ function Register() {
         <button type="submit" className="btn-auth">
           S'inscrire
         </button>
+
+        {/* 🔥 Lien vers page de connexion */}
+        <p style={{ marginTop: "15px", textAlign: "center" }}>
+          Déjà un compte ?{" "}
+          <span
+            onClick={() => navigate("/login")}
+            style={{ color: "#007bff", cursor: "pointer", fontWeight: "bold" }}
+          >
+            Se connecter
+          </span>
+        </p>
+
       </form>
     </div>
   );

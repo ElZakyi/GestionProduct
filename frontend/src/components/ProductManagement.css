@@ -82,3 +82,43 @@ h2 {
 .btn-edit:hover {
   background: #e0a800;
 }
+.btn-edit {
+  background: #ffc107;
+  color: black;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.btn-edit:hover {
+  background: #e0a800;
+}
+
+.btn-supprimer {
+  background: #dc3545;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+
+.btn-supprimer:hover {
+  background: #b02a37;
+}
+
+.btn-categorie {
+  background: #6f42c1;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-categorie:hover {
+  background: #59359a;
+}

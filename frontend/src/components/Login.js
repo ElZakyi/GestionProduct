@@ -1,22 +1,31 @@
 import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import "./Auth.css";
 
-function Login({ onLogin }) {
+function Login() {
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
+
+  const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // À connecter plus tard avec Spring :
-    // axios.post("http://localhost:8080/login", { email, motDePasse })
-    //   .then(res => onLogin(res.data));
+    axios
+      .post("http://localhost:8080/api/auth/login", {
+        email,
+        motDePasse,
+      })
+      .then((res) => {
+        alert("Connexion réussie !");
+        console.log("Utilisateur connecté :", res.data);
 
-    console.log("Tentative de connexion :", email, motDePasse);
-
-    if (onLogin) {
-      onLogin({ email });
-    }
+        navigate("/produits"); // 🔥 redirection vers page produit
+      })
+      .catch((err) => {
+        alert("Erreur : " + err.response.data.message);
+      });
   };
 
   return (
@@ -46,9 +55,7 @@ function Login({ onLogin }) {
           />
         </div>
 
-        <button type="submit" className="btn-auth">
-          Se connecter
-        </button>
+        <button type="submit" className="btn-auth">Se connecter</button>
       </form>
     </div>
   );
