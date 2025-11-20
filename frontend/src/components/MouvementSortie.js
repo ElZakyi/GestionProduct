@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import axios from "axios";
 import "./Mouvement.css";
 
-function MouvementSortie({ produits, setProduits, mouvements, setMouvements }) {
+function MouvementSortie({ produits, rafraichirProduits, chargerMouvements }) {
   const [produitId, setProduitId] = useState("");
   const [quantite, setQuantite] = useState("");
+
+  const API_URL = "http://localhost:8080/api/mouvements/sortie";
 
   const enregistrerSortie = (e) => {
     e.preventDefault();
@@ -11,37 +14,30 @@ function MouvementSortie({ produits, setProduits, mouvements, setMouvements }) {
     const prod = produits.find(p => p.idProduit === parseInt(produitId));
     if (!prod) return;
 
-    if (parseInt(quantite) > prod.stockFinal) {
-      return alert("Impossible : quantité supérieure au stock actuel !");
+    const newStock = prod.qte - parseInt(quantite);
+
+    // 🔴 Si on descend sous qteMin → bloquer
+    if (newStock < prod.qteMin) {
+      return alert(
+        `Attention : cette sortie va descendre sous le stock minimum !\n` +
+        `Stock min : ${prod.qteMin}\n` +
+        `Stock final si retiré : ${newStock}`
+      );
     }
 
-    const newStock = prod.stockFinal - parseInt(quantite);
-
-    const updatedProduit = {
-      ...prod,
-      stockFinal: newStock,
-      qte: newStock,
-      messageAlerte: newStock < prod.qteMin ? "Stock bas !" : "",
-    };
-
-    const updatedList = produits.map(p =>
-      p.idProduit === prod.idProduit ? updatedProduit : p
-    );
-
-    setProduits(updatedList);
-
-    const mouvement = {
-      idMouvement: Date.now(),
-      type: "SORTIE",
-      produit: prod.nomProduit,
-      quantite: parseInt(quantite),
-      dateMouvement: new Date().toLocaleString(),
-    };
-
-    setMouvements([...mouvements, mouvement]);
-
-    setQuantite("");
-    setProduitId("");
+    axios.post(API_URL, null, {
+      params: {
+        idProduit: produitId,
+        quantite: quantite
+      }
+    })
+      .then(() => {
+        rafraichirProduits();
+        chargerMouvements();
+        setProduitId("");
+        setQuantite("");
+      })
+      .catch(() => alert("Erreur lors de la sortie du stock"));
   };
 
   return (
@@ -52,7 +48,7 @@ function MouvementSortie({ produits, setProduits, mouvements, setMouvements }) {
         <label>Produit :</label>
         <select value={produitId} onChange={(e) => setProduitId(e.target.value)}>
           <option value="">-- Choisir un produit --</option>
-          {produits.map((p) => (
+          {produits.map(p => (
             <option key={p.idProduit} value={p.idProduit}>
               {p.nomProduit}
             </option>

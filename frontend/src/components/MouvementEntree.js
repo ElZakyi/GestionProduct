@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import axios from "axios";
 import "./Mouvement.css";
 
-function MouvementEntree({ produits, setProduits, mouvements, setMouvements }) {
+function MouvementEntree({ produits, rafraichirProduits, chargerMouvements }) {
   const [produitId, setProduitId] = useState("");
   const [quantite, setQuantite] = useState("");
+
+  const API_URL = "http://localhost:8080/api/mouvements/entree";
 
   const enregistrerEntree = (e) => {
     e.preventDefault();
@@ -11,33 +14,30 @@ function MouvementEntree({ produits, setProduits, mouvements, setMouvements }) {
     const prod = produits.find(p => p.idProduit === parseInt(produitId));
     if (!prod) return;
 
-    const newStock = prod.stockFinal + parseInt(quantite);
+    const newStock = prod.qte + parseInt(quantite);
 
-    const updatedProduit = {
-      ...prod,
-      stockFinal: newStock,
-      qte: newStock,
-      messageAlerte: newStock < prod.qteMin ? "Stock bas !" : "",
-    };
+    // 🔴 Si dépassement du stock max → bloquer
+    if (newStock > prod.qteMax) {
+      return alert(
+        `Impossible : la quantité entrée dépasse le stock maximum autorisé !\n` +
+        `Stock max : ${prod.qteMax}\n` +
+        `Stock final si ajouté : ${newStock}`
+      );
+    }
 
-    const updatedList = produits.map(p =>
-      p.idProduit === prod.idProduit ? updatedProduit : p
-    );
-
-    setProduits(updatedList);
-
-    const mouvement = {
-      idMouvement: Date.now(),
-      type: "ENTREE",
-      produit: prod.nomProduit,
-      quantite: parseInt(quantite),
-      dateMouvement: new Date().toLocaleString(),
-    };
-
-    setMouvements([...mouvements, mouvement]);
-
-    setQuantite("");
-    setProduitId("");
+    axios.post(API_URL, null, {
+      params: {
+        idProduit: produitId,
+        quantite: quantite
+      }
+    })
+      .then(() => {
+        rafraichirProduits();
+        chargerMouvements();
+        setQuantite("");
+        setProduitId("");
+      })
+      .catch(() => alert("Erreur lors de l'entrée de stock"));
   };
 
   return (
@@ -48,7 +48,7 @@ function MouvementEntree({ produits, setProduits, mouvements, setMouvements }) {
         <label>Produit :</label>
         <select value={produitId} onChange={(e) => setProduitId(e.target.value)}>
           <option value="">-- Choisir un produit --</option>
-          {produits.map((p) => (
+          {produits.map(p => (
             <option key={p.idProduit} value={p.idProduit}>
               {p.nomProduit}
             </option>

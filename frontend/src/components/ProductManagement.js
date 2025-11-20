@@ -4,11 +4,7 @@ import { useNavigate } from "react-router-dom";
 import "./ProductManagement.css";
 
 function ProductManagement() {
-  const navigate = useNavigate();
-
   const [produits, setProduits] = useState([]);
-  const [editId, setEditId] = useState(null);
-
   const [form, setForm] = useState({
     nomProduit: "",
     reference: "",
@@ -20,23 +16,24 @@ function ProductManagement() {
     qteInventaire: "",
   });
 
-  // Charger liste des produits
+  const [editId, setEditId] = useState(null);
+  const navigate = useNavigate();
+  const API_URL = "http://localhost:8080/api/produits";
+
   useEffect(() => {
-    axios.get("http://localhost:8080/api/produits")
+    axios.get(API_URL)
       .then(res => setProduits(res.data))
-      .catch(err => console.error("Erreur chargement produits", err));
+      .catch(err => console.log("Erreur chargement produits"));
   }, []);
 
-  // Gestion des inputs
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // Ajouter ou modifier un produit
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const data = {
+    const produitData = {
       ...form,
       prixUnitaire: parseFloat(form.prixUnitaire),
       qte: parseInt(form.qte),
@@ -45,23 +42,25 @@ function ProductManagement() {
       qteInventaire: parseInt(form.qteInventaire),
     };
 
-    // MODE MODIFICATION
     if (editId) {
-      axios.put(`http://localhost:8080/api/produits/${editId}`, data)
-        .then(() => {
-          alert("Produit modifié !");
-          window.location.reload();
-        });
+      axios.put(`${API_URL}/${editId}`, produitData)
+        .then(res => {
+          setProduits(produits.map(p => (p.idProduit === editId ? res.data : p)));
+          setEditId(null);
+          resetForm();
+        })
+        .catch(() => alert("Erreur lors de la modification"));
       return;
     }
 
-    // MODE AJOUT
-    axios.post("http://localhost:8080/api/produits", data)
-      .then(res => {
-        setProduits([...produits, res.data]);
-        alert("Produit ajouté !");
-      });
+    axios.post(API_URL, produitData)
+      .then(res => setProduits([...produits, res.data]))
+      .catch(() => alert("Erreur lors de l'ajout"));
 
+    resetForm();
+  };
+
+  const resetForm = () => {
     setForm({
       nomProduit: "",
       reference: "",
@@ -74,7 +73,6 @@ function ProductManagement() {
     });
   };
 
-  // Préparer modification
   const modifierProduit = (p) => {
     setEditId(p.idProduit);
     setForm({
@@ -89,21 +87,26 @@ function ProductManagement() {
     });
   };
 
-  // Supprimer un produit
   const supprimerProduit = (id) => {
-    axios.delete(`http://localhost:8080/api/produits/${id}`)
-      .then(() => {
-        setProduits(produits.filter((p) => p.idProduit !== id));
-      });
+    if (!window.confirm("Supprimer ce produit ?")) return;
+
+    axios.delete(`${API_URL}/${id}`)
+      .then(() => setProduits(produits.filter(p => p.idProduit !== id)))
+      .catch(() => alert("Erreur suppression"));
   };
 
   return (
     <div className="produit-container">
-
       <h2>Gestion des Produits</h2>
-      {/* Formulaire */}
+      <div className="top-actions">
+        <button className="btn-mvt" onClick={() => navigate("/mouvements")}>
+          🔄 Gérer Mouvements
+        </button>
+      </div>
+
+
       <form className="form-produit" onSubmit={handleSubmit}>
-        <h3>{editId ? "Modifier Produit" : "Ajouter un produit"}</h3>
+        <h3>{editId ? "Modifier le Produit" : "Ajouter un Produit"}</h3>
 
         <input type="text" name="nomProduit" placeholder="Nom"
                value={form.nomProduit} onChange={handleChange} required />
@@ -120,21 +123,20 @@ function ProductManagement() {
         <input type="number" name="qte" placeholder="Quantité actuelle"
                value={form.qte} onChange={handleChange} required />
 
-        <input type="number" name="qteMin" placeholder="Qté min"
+        <input type="number" name="qteMin" placeholder="Quantité minimum"
                value={form.qteMin} onChange={handleChange} required />
 
-        <input type="number" name="qteMax" placeholder="Qté max"
+        <input type="number" name="qteMax" placeholder="Quantité maximum"
                value={form.qteMax} onChange={handleChange} required />
 
         <input type="number" name="qteInventaire" placeholder="Inventaire"
                value={form.qteInventaire} onChange={handleChange} required />
 
         <button type="submit" className="btn-ajouter">
-          {editId ? "Modifier" : "Ajouter"}
+          {editId ? "Enregistrer Modification" : "Ajouter"}
         </button>
       </form>
 
-      {/* Liste */}
       <h3>Liste des Produits</h3>
 
       <table className="table-produit">
@@ -163,8 +165,7 @@ function ProductManagement() {
               <td>{p.qteInventaire}</td>
 
               <td>
-                <button className="btn-modifier"
-                        onClick={() => modifierProduit(p)}>
+                <button className="btn-edit" onClick={() => modifierProduit(p)}>
                   Modifier
                 </button>
 
@@ -172,11 +173,11 @@ function ProductManagement() {
                         onClick={() => supprimerProduit(p.idProduit)}>
                   Supprimer
                 </button>
-                <button
-                  className="btn-categorie"
-                  onClick={() => navigate("/categories")}
-                >
-                  Gérer Catégories
+
+                {/* 🔵 Bouton Gérer Catégorie pour CE produit */}
+                <button className="btn-cat"
+                        onClick={() => navigate(`/categories?produit=${p.idProduit}`)}>
+                  📁 Gérer Catégorie
                 </button>
               </td>
             </tr>
