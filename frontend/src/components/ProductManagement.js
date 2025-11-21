@@ -5,6 +5,7 @@ import "./ProductManagement.css";
 
 function ProductManagement() {
   const [produits, setProduits] = useState([]);
+
   const [form, setForm] = useState({
     nomProduit: "",
     reference: "",
@@ -17,23 +18,37 @@ function ProductManagement() {
   });
 
   const [editId, setEditId] = useState(null);
-  const navigate = useNavigate();
-  const API_URL = "http://localhost:8080/api/produits";
 
+  const navigate = useNavigate();
+  const API_PRODUITS = "http://localhost:8080/api/produits";
+
+  // Charger les produits au démarrage
   useEffect(() => {
-    axios.get(API_URL)
-      .then(res => setProduits(res.data))
-      .catch(err => console.log("Erreur chargement produits"));
+    chargerProduits();
   }, []);
+
+  // 🔥 VERSION FINALE — A GARDER
+  const chargerProduits = () => {
+    axios.get(API_PRODUITS)
+      .then(res => {
+        console.log("Réponse produits =", res.data);
+        console.log("Type =", typeof res.data);
+        setProduits(res.data);
+      })
+      .catch(err => {
+        console.log("Erreur GET produits :", err);
+      });
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // Ajouter ou modifier un produit
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const produitData = {
+    const data = {
       ...form,
       prixUnitaire: parseFloat(form.prixUnitaire),
       qte: parseInt(form.qte),
@@ -43,21 +58,24 @@ function ProductManagement() {
     };
 
     if (editId) {
-      axios.put(`${API_URL}/${editId}`, produitData)
-        .then(res => {
-          setProduits(produits.map(p => (p.idProduit === editId ? res.data : p)));
-          setEditId(null);
+      axios
+        .put(`${API_PRODUITS}/${editId}`, data)
+        .then(() => {
+          chargerProduits();
           resetForm();
+          setEditId(null);
         })
-        .catch(() => alert("Erreur lors de la modification"));
+        .catch(() => alert("Erreur modification"));
       return;
     }
 
-    axios.post(API_URL, produitData)
-      .then(res => setProduits([...produits, res.data]))
-      .catch(() => alert("Erreur lors de l'ajout"));
-
-    resetForm();
+    axios
+      .post(API_PRODUITS, data)
+      .then(() => {
+        chargerProduits();
+        resetForm();
+      })
+      .catch(() => alert("Erreur ajout"));
   };
 
   const resetForm = () => {
@@ -90,50 +108,38 @@ function ProductManagement() {
   const supprimerProduit = (id) => {
     if (!window.confirm("Supprimer ce produit ?")) return;
 
-    axios.delete(`${API_URL}/${id}`)
-      .then(() => setProduits(produits.filter(p => p.idProduit !== id)))
+    axios
+      .delete(`${API_PRODUITS}/${id}`)
+      .then(() => chargerProduits())
       .catch(() => alert("Erreur suppression"));
   };
 
   return (
     <div className="produit-container">
-      <h2>Gestion des Produits</h2>
+
       <div className="top-actions">
         <button className="btn-mvt" onClick={() => navigate("/mouvements")}>
           🔄 Gérer Mouvements
         </button>
       </div>
 
+      <h2>Gestion des Produits</h2>
 
       <form className="form-produit" onSubmit={handleSubmit}>
-        <h3>{editId ? "Modifier le Produit" : "Ajouter un Produit"}</h3>
+        <h3>{editId ? "Modifier un Produit" : "Ajouter un Produit"}</h3>
 
-        <input type="text" name="nomProduit" placeholder="Nom"
-               value={form.nomProduit} onChange={handleChange} required />
+        <input type="text" name="nomProduit" placeholder="Nom" value={form.nomProduit} onChange={handleChange} required />
+        <input type="text" name="reference" placeholder="Référence" value={form.reference} onChange={handleChange} required />
+        <input type="text" name="description" placeholder="Description" value={form.description} onChange={handleChange} required />
 
-        <input type="text" name="reference" placeholder="Référence"
-               value={form.reference} onChange={handleChange} required />
-
-        <input type="text" name="description" placeholder="Description"
-               value={form.description} onChange={handleChange} required />
-
-        <input type="number" name="prixUnitaire" placeholder="Prix unitaire"
-               value={form.prixUnitaire} onChange={handleChange} required />
-
-        <input type="number" name="qte" placeholder="Quantité actuelle"
-               value={form.qte} onChange={handleChange} required />
-
-        <input type="number" name="qteMin" placeholder="Quantité minimum"
-               value={form.qteMin} onChange={handleChange} required />
-
-        <input type="number" name="qteMax" placeholder="Quantité maximum"
-               value={form.qteMax} onChange={handleChange} required />
-
-        <input type="number" name="qteInventaire" placeholder="Inventaire"
-               value={form.qteInventaire} onChange={handleChange} required />
+        <input type="number" name="prixUnitaire" placeholder="Prix" value={form.prixUnitaire} onChange={handleChange} required />
+        <input type="number" name="qte" placeholder="Quantité actuelle" value={form.qte} onChange={handleChange} required />
+        <input type="number" name="qteMin" placeholder="Quantité min" value={form.qteMin} onChange={handleChange} required />
+        <input type="number" name="qteMax" placeholder="Quantité max" value={form.qteMax} onChange={handleChange} required />
+        <input type="number" name="qteInventaire" placeholder="Inventaire" value={form.qteInventaire} onChange={handleChange} required />
 
         <button type="submit" className="btn-ajouter">
-          {editId ? "Enregistrer Modification" : "Ajouter"}
+          {editId ? "Enregistrer" : "Ajouter"}
         </button>
       </form>
 
@@ -165,18 +171,13 @@ function ProductManagement() {
               <td>{p.qteInventaire}</td>
 
               <td>
-                <button className="btn-edit" onClick={() => modifierProduit(p)}>
-                  Modifier
-                </button>
+                <button className="btn-edit" onClick={() => modifierProduit(p)}>Modifier</button>
+                <button className="btn-supprimer" onClick={() => supprimerProduit(p.idProduit)}>Supprimer</button>
 
-                <button className="btn-supprimer"
-                        onClick={() => supprimerProduit(p.idProduit)}>
-                  Supprimer
-                </button>
-
-                {/* 🔵 Bouton Gérer Catégorie pour CE produit */}
-                <button className="btn-cat"
-                        onClick={() => navigate(`/categories?produit=${p.idProduit}`)}>
+                <button
+                  className="btn-cat"
+                  onClick={() => navigate(`/categories?produit=${p.idProduit}`)}
+                >
                   📁 Gérer Catégorie
                 </button>
               </td>
@@ -184,7 +185,9 @@ function ProductManagement() {
           ))}
 
           {produits.length === 0 && (
-            <tr><td colSpan="8">Aucun produit.</td></tr>
+            <tr>
+              <td colSpan="8">Aucun produit.</td>
+            </tr>
           )}
         </tbody>
       </table>

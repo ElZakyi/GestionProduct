@@ -1,41 +1,44 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";  // 👈 pour la redirection
+import { useNavigate, useLocation } from "react-router-dom";
 import "./CategoryManagement.css";
 
 function CategorieManagement() {
+
   const [categories, setCategories] = useState([]);
   const [nomCategorie, setNomCategorie] = useState("");
   const [description, setDescription] = useState("");
   const [editId, setEditId] = useState(null);
 
-  const navigate = useNavigate(); // 👈 redirection
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const params = new URLSearchParams(location.search);
+  const idProduit = params.get("produit"); // 👈 récupéré depuis l’URL
+
   const API_URL = "http://localhost:8080/api/categories";
 
-  // 🔹 Charger la liste au démarrage
   useEffect(() => {
     chargerCategories();
   }, []);
 
   const chargerCategories = () => {
-    axios
-      .get(API_URL)
-      .then((res) => setCategories(res.data))
+    axios.get(API_URL)
+      .then(res => setCategories(res.data))
       .catch(() => alert("Erreur lors du chargement des catégories"));
   };
 
-  // 🔹 Ajouter ou modifier
   const handleSubmit = (e) => {
     e.preventDefault();
 
     const categorie = {
       nomCategorie,
       description,
+      idProduit: idProduit ? Number(idProduit) : null // 👈 envoyé au backend
     };
 
     if (editId) {
-      axios
-        .put(`${API_URL}/${editId}`, categorie)
+      axios.put(`${API_URL}/${editId}`, categorie)
         .then(() => {
           chargerCategories();
           setEditId(null);
@@ -44,8 +47,7 @@ function CategorieManagement() {
         })
         .catch(() => alert("Erreur lors de la modification"));
     } else {
-      axios
-        .post(API_URL, categorie)
+      axios.post(API_URL, categorie)
         .then(() => {
           chargerCategories();
           setNomCategorie("");
@@ -55,19 +57,16 @@ function CategorieManagement() {
     }
   };
 
-  // 🔹 Remplir le formulaire
   const modifierCategorie = (cat) => {
     setNomCategorie(cat.nomCategorie);
     setDescription(cat.description);
     setEditId(cat.idCategorie);
   };
 
-  // 🔹 Supprimer
   const supprimerCategorie = (id) => {
     if (!window.confirm("Supprimer cette catégorie ?")) return;
 
-    axios
-      .delete(`${API_URL}/${id}`)
+    axios.delete(`${API_URL}/${id}`)
       .then(() => chargerCategories())
       .catch(() => alert("Erreur lors de la suppression"));
   };
@@ -75,19 +74,9 @@ function CategorieManagement() {
   return (
     <div className="categorie-container">
 
-      {/* 🔙 BOUTON RETOUR */}
       <button
         onClick={() => navigate("/produits")}
         className="btn-retour"
-        style={{
-          background: "#6c757d",
-          color: "white",
-          padding: "8px 14px",
-          borderRadius: "6px",
-          border: "none",
-          cursor: "pointer",
-          marginBottom: "20px"
-        }}
       >
         ← Retour Produits
       </button>
@@ -110,7 +99,7 @@ function CategorieManagement() {
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows="3"
-        ></textarea>
+        />
 
         <button type="submit" className="btn-ajouter">
           {editId ? "Modifier" : "Ajouter"}
@@ -124,32 +113,32 @@ function CategorieManagement() {
           <tr>
             <th>Nom</th>
             <th>Description</th>
+            <th>Produits associés</th>
             <th>Actions</th>
           </tr>
         </thead>
 
         <tbody>
           {categories.length === 0 ? (
-            <tr>
-              <td colSpan="3">Aucune catégorie trouvée.</td>
-            </tr>
+            <tr><td colSpan="4">Aucune catégorie trouvée.</td></tr>
           ) : (
-            categories.map((cat) => (
+            categories.map(cat => (
               <tr key={cat.idCategorie}>
                 <td>{cat.nomCategorie}</td>
                 <td>{cat.description}</td>
+
                 <td>
-                  <button
-                    className="btn-modifier"
-                    onClick={() => modifierCategorie(cat)}
-                  >
+                  {cat.produits && cat.produits.length > 0
+                    ? cat.produits.map(p => p.nomProduit).join(", ")
+                    : "Aucun produit"}
+                </td>
+
+                <td>
+                  <button className="btn-modifier" onClick={() => modifierCategorie(cat)}>
                     Modifier
                   </button>
 
-                  <button
-                    className="btn-supprimer"
-                    onClick={() => supprimerCategorie(cat.idCategorie)}
-                  >
+                  <button className="btn-supprimer" onClick={() => supprimerCategorie(cat.idCategorie)}>
                     Supprimer
                   </button>
                 </td>
