@@ -24,18 +24,31 @@ public class ProduitService {
                 .orElseThrow(() -> new RuntimeException("Produit introuvable"));
     }
 
-    // 🔹 Ajouter un produit
-    public Produit save(Produit produit) {
+    // 🔹 Ajouter un produit avec BUILDER
+    public Produit save(Produit p) {
+
+        // ⚠ IMPORTANT : On utilise le Builder pour reconstruire proprement le produit
+        Produit produit = new Produit.Builder()
+                .nomProduit(p.getNomProduit())
+                .reference(p.getReference())
+                .description(p.getDescription())
+                .prixUnitaire(p.getPrixUnitaire())
+                .qte(p.getQte())
+                .qteMin(p.getQteMin())
+                .qteMax(p.getQteMax())
+                .qteInventaire(p.getQteInventaire())
+                .categorie(p.getCategorie())
+                .build();
+
         return repo.save(produit);
     }
 
-    // 🔹 Modifier un produit
+    // 🔹 Modifier un produit (pas besoin du builder ici)
     public Produit update(Long id, Produit p) {
 
         Produit exist = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Produit introuvable"));
 
-        // Mise à jour des champs
         exist.setNomProduit(p.getNomProduit());
         exist.setReference(p.getReference());
         exist.setDescription(p.getDescription());
@@ -45,8 +58,8 @@ public class ProduitService {
         exist.setQteMin(p.getQteMin());
         exist.setQteMax(p.getQteMax());
         exist.setQteInventaire(p.getQteInventaire());
-        exist.setCategorie(p.getCategorie());
 
+        exist.setCategorie(p.getCategorie());
 
         return repo.save(exist);
     }

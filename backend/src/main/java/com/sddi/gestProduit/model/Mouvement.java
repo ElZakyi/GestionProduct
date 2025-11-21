@@ -1,5 +1,7 @@
 package com.sddi.gestProduit.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import jakarta.persistence.*;
@@ -28,7 +30,9 @@ public class Mouvement {
     private LocalDateTime dateMouvement;
     private int quantite;
 
-    @ManyToOne
-    @JoinColumn(name = "idProduit")
-    private Produit produit;  // un mouvement concerne un produit
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "idProduit", nullable = false)
+    @JsonIgnoreProperties({"mouvements", "hibernateLazyInitializer", "handler"})
+    private Produit produit;
+    // un mouvement concerne un produit
 }

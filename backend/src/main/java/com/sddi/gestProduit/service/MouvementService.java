@@ -1,13 +1,8 @@
 package com.sddi.gestProduit.service;
 
-import com.sddi.gestProduit.model.Mouvement;
-import com.sddi.gestProduit.model.MouvementEntree;
-import com.sddi.gestProduit.model.MouvementSortie;
-import com.sddi.gestProduit.model.Produit;
-import com.sddi.gestProduit.repository.MouvementEntreeRepository;
-import com.sddi.gestProduit.repository.MouvementRepository;
-import com.sddi.gestProduit.repository.MouvementSortieRepository;
-import com.sddi.gestProduit.repository.ProduitRepository;
+import com.sddi.gestProduit.Factory.MouvementFactory;
+import com.sddi.gestProduit.model.*;
+import com.sddi.gestProduit.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,54 +19,52 @@ public class MouvementService {
     private MouvementRepository mouvementRepo;
 
     @Autowired
-    private MouvementEntreeRepository mouvementEntreeRepo;
+    private MouvementFactory mouvementFactory;
 
-    @Autowired
-    private MouvementSortieRepository mouvementSortieRepo;
-
-    // 🔹 ENTRÉE DE STOCK
-    public MouvementEntree enregistrerEntree(Long idProduit, int quantite) {
+    public Mouvement enregistrerEntree(Long idProduit, int quantite) {
 
         Produit p = produitRepo.findById(idProduit)
                 .orElseThrow(() -> new RuntimeException("Produit introuvable"));
 
-        // mise à jour du stock (on utilise le champ qte existant)
+        // --- appliquer l'entrée ---
         p.setQte(p.getQte() + quantite);
         p.setQteInventaire(p.getQte());
         produitRepo.save(p);
 
-        MouvementEntree m = new MouvementEntree();
+        // --- créer mouvement via Factory ---
+        Mouvement m = mouvementFactory.creerMouvement("ENTREE");
         m.setProduit(p);
         m.setQuantite(quantite);
         m.setDateMouvement(LocalDateTime.now());
 
-        return mouvementEntreeRepo.save(m);
+        return mouvementRepo.save(m);
     }
 
-    // 🔹 SORTIE DE STOCK
-    public MouvementSortie enregistrerSortie(Long idProduit, int quantite) {
+    public Mouvement enregistrerSortie(Long idProduit, int quantite) {
 
         Produit p = produitRepo.findById(idProduit)
                 .orElseThrow(() -> new RuntimeException("Produit introuvable"));
 
-        if (p.getQte() < quantite) {
-            throw new RuntimeException("Stock insuffisant pour ce produit");
+        if (quantite > p.getQte()) {
+            throw new RuntimeException("Stock insuffisant !");
         }
 
+        // --- appliquer la sortie ---
         p.setQte(p.getQte() - quantite);
         p.setQteInventaire(p.getQte());
         produitRepo.save(p);
 
-        MouvementSortie m = new MouvementSortie();
+        // --- créer mouvement via Factory ---
+        Mouvement m = mouvementFactory.creerMouvement("SORTIE");
         m.setProduit(p);
         m.setQuantite(quantite);
         m.setDateMouvement(LocalDateTime.now());
 
-        return mouvementSortieRepo.save(m);
+        return mouvementRepo.save(m);
     }
 
-    // 🔹 LISTE DE TOUS LES MOUVEMENTS (entrées + sorties)
     public List<Mouvement> findAll() {
         return mouvementRepo.findAll();
     }
 }
+
